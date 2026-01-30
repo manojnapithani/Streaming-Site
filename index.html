@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telugu Movies - StreamFlix</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for video player */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #000;
+        }
+        
+        .telugu-banner {
+            position: relative;
+            overflow: hidden;
+            color: white;
+            padding: 10rem;
+            text-align: center;
+            margin-top: 80px;
+            z-index: 1;
+        }
+        
+        .telugu-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(238, 90, 36, 0.9));
+            z-index: -1;
+        }
+        
+        .telugu-banner h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .telugu-banner p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Scrolling movie banner */
+        .movie-scroll-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .movie-scroll {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            animation: scrollLeft 30s linear infinite;
+        }
+        
+        .movie-scroll img {
+            height: 100%;
+            width: auto;
+            object-fit: cover;
+            opacity: 0.4;
+        }
+        
+        @keyframes scrollLeft {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        .movie-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .movie-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .movie-info {
+            padding: 1rem;
+            background: rgba(20, 20, 20, 0.9);
+        }
+        
+        .movie-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #b3b3b3;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .movie-card:hover .play-overlay {
+            opacity: 1;
+        }
+        
+        .play-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(229, 9, 20, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* Video player controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 2rem 1rem 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-filled {
+            height: 100%;
+            background: var(--primary-color, #e50914);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .controls-left,
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .control-btn:hover {
+            color: var(--primary-color, #e50914);
+        }
+        
+        .time-display {
+            color: #b3b3b3;
+            font-size: 0.9rem;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            cursor: pointer;
+        }
+        
+        /* Video player modal with scrollbar */
+        .media-player-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            overflow-y: auto;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .media-player-modal.active {
+            display: flex;
+        }
+        
+        .media-player-container {
+            width: 90%;
+            max-width: 1200px;
+            background: var(--background-dark, #000);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .back-button:hover {
+            background: var(--primary-color, #e50914);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (Same as home) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo">
+                    <i class="fas fa-play-circle"></i>
+                    <span>ManaCinema</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="categories.html" class="nav-link active">Telugu Movies</a></li>
+                    <li><a href="#" class="nav-link">Trending</a></li>
+                    <li><a href="#" class="nav-link">My List</a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search Telugu movies...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="user-menu">
+                    <i class="fas fa-bell"></i>
+                    <div class="user-avatar">
+                        <img src="https://picsum.photos/seed/user1/40/40" alt="User">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Telugu Movies Banner with Scrolling Background -->
+    <section class="telugu-banner">
+        <div class="movie-scroll-container">
+            <div class="movie-scroll" id="movieScroll">
+                <!-- Movie posters will be dynamically added here -->
+            </div>
+        </div>
+        <h1>Telugu Cinema Collection</h1>
+        <p>Enjoy the latest and greatest Telugu movies</p>
+    </section>
+
+    <!-- Telugu Movies Categories -->
+    <main class="categories-main">
+        <div class="category-filters">
+            <button class="filter-btn active" data-category="all">All Movies</button>
+            <button class="filter-btn" data-category="action">Action</button>
+            <button class="filter-btn" data-category="drama">Drama</button>
+            <button class="filter-btn" data-category="romance">Romance</button>
+            <button class="filter-btn" data-category="comedy">Comedy</button>
+            <button class="filter-btn" data-category="thriller">Thriller</button>
+        </div>
+
+        <div class="content-grid" id="teluguMoviesGrid">
+            <!-- Movies will be loaded dynamically -->
+        </div>
+    </main>
+
+    <!-- Video Player Modal -->
+    <div class="media-player-modal" id="videoPlayerModal">
+        <div class="media-player-container">
+            <button class="back-button" onclick="closeVideoPlayer()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="video-container">
+                <video id="videoPlayer" controls>
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-controls">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-filled" id="progressFilled"></div>
+                    </div>
+                    <div class="controls-row">
+                        <div class="controls-left">
+                            <button class="control-btn" onclick="togglePlay()">
+                                <i class="fas fa-play" id="playPauseIcon"></i>
+                            </button>
+                            <button class="control-btn" onclick="skip(-10)">
+                                <i class="fas fa-backward"></i> 10s
+                            </button>
+                            <button class="control-btn" onclick="skip(10)">
+                                <i class="fas fa-forward"></i> 10s
+                            </button>
+                            <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+                        </div>
+                        <div class="controls-right">
+                            <button class="control-btn" onclick="toggleMute()">
+                                <i class="fas fa-volume-up" id="volumeIcon"></i>
+                            </button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                            <button class="control-btn" onclick="toggleFullscreen()">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="player-info">
+                <h3 id="playerTitle">Movie Title</h3>
+                <p id="playerDescription">Movie description...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telugu movies data with local video paths
+        const teluguMovies = [
+            {
+                id: 1,
+                title: "Govindudu Andarivadele",
+                category: ["action", "drama"],
+                year: 2014,
+                rating: 4.8,
+                description: "The story follows Abhiram (Ram Charan), a London-based NRI who visits his estranged family in India to reconcile his father with his grandfather, Balaraju, while keeping his identity hidden.",
+                thumbnail: "videos/img1.jpeg",
+                videoSrc: "videos/Trailer1.mp4"
+            },
+            {
+                id: 2,
+                title: "Pushpa: The Rise",
+                category: ["action", "drama"],
+                year: 2021,
+                rating: 4.5,
+                description: "A coolie rises in the hierarchy of a red sandalwood smuggling syndicate, making enemies.",
+                thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmCxyA8qLHAlPkVp2E4n4Qr5-P9do6QhyuNQ&s",
+                videoSrc: "videos/trailer2.mp4"
+            },
+            {
+                id: 3,
+                title: "Tholi Prema",
+                category: ["drama", "romance"],
+                year: 2017,
+                rating: 4.6,
+                description: "The intense, years-long journey of Adi, an impulsive lover, and Varsha, a reserved girl, exploring their initial love, separation, and attempts to reconnect despite life's hurdles.",
+                thumbnail: "videos/img3.jpeg",
+                videoSrc: "videos/trailer3.mp4"
+            },
+            {
+                id: 4,
+                title: "Majili",
+                category: ["drama", "romance"],
+                year: 2019,
+                rating: 4.4,
+                description: "A former cricket player who has to deal with his wife's obsessive ex-lover.",
+                thumbnail: "videos/img4.jpeg",
+                videoSrc: "videos/trailer4.mp4"
+            },
+            {
+                id: 5,
+                title: "Jersey",
+                category: ["drama"],
+                year: 2019,
+                rating: 4.7,
+                description: "A 36-year-old cricketer who decides to return to the field to fulfill his son's wish.",
+                thumbnail: "videos/img5.jpeg",
+                videoSrc: "videos/trailer5.mp4"
+            },
+            {
+                id: 6,
+                title: "Fidaa",
+                category: ["romance", "drama"],
+                year: 2017,
+                rating: 4.3,
+                description: "A love story between an NRI and a village girl.",
+                thumbnail: "videos/img6.jpeg",
+                videoSrc: "videos/trailer6.mp4"
+            },
+            {
+                id: 7,
+                title: "Sathamanam Bhavati",
+                category: ["thriller"],
+                year: 2019,
+                rating: 4.5,
+                description: "About a grandfather trying to bring his globe-trotting children back home, and also a Telugu daily soap opera on ETV Telugu exploring family themes.",
+                thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwGGHuXO0Hh9eeK2xtugbM9gqqTGHF45DKdw&s",
+                videoSrc: "videos/trailer7.mp4"
+            },
+            {
+                id: 8,
+                title: "Dear Comrade",
+                category: ["action", "thriller"],
+                year: 2018,
+                rating: 4.4,
+                description: "The story transitions from a youthful romance to a deeper exploration of trauma and healing, as Bobby helps Lilly overcome sexual harassment within the sports industry.",
+                thumbnail: "https://bollyspice.com/wp-content/uploads/2019/07/1AD63A43-E308-4F9F-AD4D-C75DEFAF9E92.jpeg",
+                videoSrc: "videos/trailer8.mp4"
+            },
+            {
+                id: 9,
+                title: "Sita Ramam",
+                category: ["romance", "drama"],
+                year: 2022,
+                rating: 4.7,
+                description: "An orphan army lieutenant discovers his love through letters and sets out on a journey to find her.",
+                thumbnail: "https://upload.wikimedia.org/wikipedia/en/thumb/1/1d/Sita_Ramam.jpg/250px-Sita_Ramam.jpg",
+                videoSrc: "videos/trailer9.mp4"
+            },
+            {
+                id: 10,
+                title: "Mr. Majnu",
+                category: ["romance", "drama"],
+                year: 2018,
+                rating: 4.2,
+                description: "Romantic comedy that follows the story of a charming playboy, Vicky, who avoids commitment until he meets Nikki, a girl with traditional values.",
+                thumbnail: "https://a10.gaanacdn.com/gn_img/albums/VdNW0JMKo5/dNW0aRYNbo/size_m_1547447484.jpg",
+                videoSrc: "videos/trailer10.mp4"
+            },
+            {
+                id: 11,
+                title: "A Aa",
+                category: ["romance", "comedy"],
+                year: 2016,
+                rating: 4.1,
+                description: "A young woman who wants to live life on her own terms meets a man who helps her achieve her dreams.",
+                thumbnail: "https://m.media-amazon.com/images/S/pv-target-images/673e7dade088d8ac6f1c0026cafeff09faa0060759ca85f64fc00bf336bbd064.jpg",
+                videoSrc: "videos/trailer11.mp4"
+            },
+            {
+                id: 12,
+                title: "Seetamavakitlo Sirimallechettu",
+                category: ["drama", "romance"],
+                year: 2015,
+                rating: 4.3,
+                description: "A young man falls in love with a modern woman but has trouble accepting her lifestyle.",
+                thumbnail: "videos/img12.jpg",
+                videoSrc: "videos/trailer12.mp4"
+            },
+            {
+                id: 13,
+                title: "Dhruva",
+                category: ["action", "drama"],
+                year: 2022,
+                rating: 4.9,
+                description: "A determined IPS officer takes on a powerful and corrupt businessman who controls the city's criminal underworld.",
+                thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv3Vs5h30wlo0lzEyYrvzYVcSxjh3Vjkmzlw&s",
+                videoSrc: "videos/trailer13.mp4"
+            },
+            {
+                id: 14,
+                title: "Srimanthudu",
+                category: ["comedy","action"],
+                year: 2022,
+                rating: 4.2,
+                description: "Harsha Vardhan (played by Mahesh Babu), the idealistic heir to a multi-millionaire, feels a void in his life despite his wealth.",
+                thumbnail: "https://a.ltrbxd.com/resized/film-poster/2/8/3/5/2/6/283526-srimanthudu-2015-0-230-0-345-crop.jpg?v=fdbbdb0337",
+                videoSrc: "videos/trailer14.mp4"
+            },
+            {
+                id: 15,
+                title: "Akhanda",
+                category: ["action", "drama"],
+                year: 2021,
+                rating: 4.6,
+                description: "A village is protected by a divine being who fights against evil forces.",
+                thumbnail: "https://static.toiimg.com/thumb/msid-125886475,imgsize-1142896,width-400,resizemode-4/125886475.jpg",
+                videoSrc: "videos/trailer15.mp4"
+            },
+            {
+                id: 16,
+                title: "Mr. Perfect",
+                category: ["comedy", "romance"],
+                year: 2022,
+                rating: 4.4,
+                description: "A man who believes in perfection falls in love with a woman who is completely opposite to him.",
+                thumbnail: "https://img.airtel.tv/unsafe/fit-in/500x0/filters:format(webp)/https://xstreamcp-assets-msp.streamready.in/assets/HOTSTAR_DTH/MOVIE/690de3fabd29c33a8a099832/images/PORTRAIT/1740478099063-v?o=production",
+                videoSrc: "videos/trailer16.mp4"
+            },
+            {
+                id: 17,
+                title: "Tammudu",
+                category: ["action", "thriller"],
+                year: 2022,
+                rating: 4.5,
+                description: "A police inspector clashes with a politician's son, leading to a confrontation.",
+                thumbnail: "https://play-lh.googleusercontent.com/LyzQgpDLtRrqeGqQXD2KFZZP2RHJvU7fGZGDko91ey_4UkhVhvH6ssAhrcPBJd-40ZKC5g",
+                videoSrc: "videos/trailer17.mp4"
+            },
+            {
+                id: 18,
+                title: "Ala Vaikunthapurramuloo",
+                category: ["action", "drama"],
+                year: 2020,
+                rating: 4.7,
+                description: "A young man who is neglected by his father finds his place in a different family.",
+                thumbnail: "https://upload.wikimedia.org/wikipedia/en/thumb/2/28/Ala_Vaikunthapurramuloo.jpeg/250px-Ala_Vaikunthapurramuloo.jpeg",
+                videoSrc: "videos/trailer18.mp4"
+            },
+            {
+                id: 19,
+                title: "Samajavaragamana",
+                category: ["drama", "action"],
+                year: 2019,
+                rating: 4.5,
+                description: "A successful businessman returns to his village and fights against the system.",
+                thumbnail: "https://a10.gaanacdn.com/gn_img/albums/qa4WEkqKP1/4WEkwEPgKP/size_m_1706868343.jpg",
+                videoSrc: "videos/trailer19.mp4"
+            },
+            {
+                id: 20,
+                title: "Mukunda",
+                category: ["action", "drama"],
+                year: 2019,
+                rating: 4.6,
+                description: "The story of India's first freedom fighter, Uyyalawada Narasimha Reddy.",
+                thumbnail: "https://upload.wikimedia.org/wikipedia/en/1/11/Mukunda_album_cover.jpg",
+                videoSrc: "videos/trailer20.mp4"
+            },
+            {
+                id: 21,
+                title: "Eega",
+                category: ["fantasy", "action"],
+                year: 2012,
+                rating: 4.7,
+                description: "A man who is murdered reincarnates as a housefly and seeks revenge.",
+                thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTF-IzgWf7QhRBae4hzR8G9iWqdyBSEvC__Zw&s",
+                videoSrc: "videos/trailer21.mp4"
+            },
+            {
+                id: 22,
+                title: "Sankrathiki Vasthunam",
+                category: ["action", "romance"],
+                year: 2009,
+                rating: 4.8,
+                description: "A warrior from the 17th century reincarnates in the present day to protect his love.",
+                thumbnail: "https://m.media-amazon.com/images/M/MV5BZGFiMWU4OTAtOGY2MC00ZTIwLThlNmMtOTMwMDAyYjk5M2E3XkEyXkFqcGc@._V1_.jpg",
+                videoSrc: "videos/trailer22.mp4"
+            },
+            {
+                id: 23,
+                title: "Ranga Ranga Vaibhavanga",
+                category: ["drama", "war"],
+                year: 2015,
+                rating: 4.5,
+                description: "A love story set against the backdrop of World War II.",
+                thumbnail: "https://upload.wikimedia.org/wikipedia/en/b/b1/Ranga_Ranga_Vaibhavanga_poster.jpeg",
+                videoSrc: "videos/trailer23.mp4"
+            },
+            {
+                id: 24,
+                title: "Bheeshma",
+                category: ["romance", "drama"],
+                year: 2017,
+                rating: 4.3,
+                description: "A love story between an NRI and a village girl.",
+                thumbnail: "https://images.filmibeat.com/img/popcorn/movie_posters/bheeshma-20191108101742-18180.jpg",
+                videoSrc: "videos/trailer24.mp4"
+            },
+            // Additional Telugu movies
+            {
+                id: 25,
+                title: "RRR",
+                category: ["action", "drama"],
+                year: 2022,
+                rating: 4.9,
+                description: "A fictional history about two legendary revolutionaries' journey away from home before they began fighting for their country in the 1920s.",
+                thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnaa6GC-6TQWlAD2nuHBWz5QdE5fk34SYnDA&s",
+                videoSrc: "videos/trailer4.mp4"
+            },
+            {
+                id: 26,
+                title: "F3: Fun and Frustration",
+                category: ["comedy"],
+                year: 2022,
+                rating: 4.2,
+                description: "Two brothers who are desperate for money get into a series of hilarious situations.",
+                thumbnail: "https://images.ottplay.com/posters/7f48b714bc680139bbec35b105146c68.jpg",
+                videoSrc: "videos/trailer3.mp4"
+            },
+            {
+                id: 27,
+                title: "KGF Chapter 2",
+                category: ["action", "drama"],
+                year: 2022,
+                rating: 4.7,
+                description: "The blood-soaked land of Kolar has a new king, Rocky, whose name strikes fear in the heart of his foes.",
+                thumbnail: "https://wallpapers.com/images/high/cool-kgf-chapter-2-poster-0axobl2ual8wurln.jpg",
+                videoSrc: "videos/Trailer1.mp4"
+            },
+            {
+                id: 28,
+                title: "Kartikeya 2",
+                category: ["action", "thriller"],
+                year: 2022,
+                rating: 4.6,
+                description: "A doctor embarks on a journey to find the truth behind a mysterious incident.",
+                thumbnail: "https://upload.wikimedia.org/wikipedia/en/7/7e/Karthikeya_2_Poster.jpeg",
+                videoSrc: "videos/trailer3.mp4"
+            },
+            {
+                id: 29,
+                title: "Major",
+                category: ["action", "drama"],
+                year: 2022,
+                rating: 4.8,
+                description: "Based on the life of Major Sandeep Unnikrishnan, who was martyred in the 26/11 Mumbai attacks.",
+                thumbnail: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3OqNFECKKPt7PJkqfVXD4lOlolkV-gEiEnQ&s",
+                videoSrc: "videos/trailer7.mp4"
+            },
+            {
+                id: 30,
+                title: "Shyam Singha Roy",
+                category: ["action", "drama"],
+                year: 2022,
+                rating: 4.5,
+                description: "A filmmaker discovers he is the reincarnation of a revolutionary writer from the 1970s.",
+                thumbnail: "https://upload.wikimedia.org/wikipedia/en/f/f0/Shyam_singa_roy_poster.jpg",
+                videoSrc: "videos/trailer3.mp4"
+            }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMovies('all');
+            setupFilterButtons();
+            setupSearch();
+            setupVideoPlayer();
+            setupMovieScroll();
+        });
+
+        // Setup movie scroll with actual movie posters
+        function setupMovieScroll() {
+            const movieScroll = document.getElementById('movieScroll');
+            movieScroll.innerHTML = '';
+            
+            // Add movie posters
+            teluguMovies.forEach(movie => {
+                const img = document.createElement('img');
+                img.src = movie.thumbnail;
+                img.alt = movie.title;
+                movieScroll.appendChild(img);
+            });
+            
+            // Duplicate for seamless scrolling
+            teluguMovies.forEach(movie => {
+                const img = document.createElement('img');
+                img.src = movie.thumbnail;
+                img.alt = movie.title;
+                movieScroll.appendChild(img);
+            });
+        }
+
+        // Load movies based on category
+        function loadMovies(category) {
+            const moviesGrid = document.getElementById('teluguMoviesGrid');
+            moviesGrid.innerHTML = '';
+
+            let filteredMovies = teluguMovies;
+            
+            if (category !== 'all') {
+                filteredMovies = teluguMovies.filter(movie => 
+                    movie.category.includes(category)
+                );
+            }
+
+            filteredMovies.forEach(movie => {
+                moviesGrid.appendChild(createMovieCard(movie));
+            });
+        }
+
+        // Create movie card element
+        function createMovieCard(movie) {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+            
+            card.innerHTML = `
+                <img src="${movie.thumbnail}" alt="${movie.title}" class="movie-thumbnail">
+                <div class="play-overlay">
+                    <div class="play-button">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                <div class="movie-info">
+                    <h3 class="movie-title">${movie.title}</h3>
+                    <div class="movie-meta">
+                        <span>${movie.year}</span>
+                        <span>⭐ ${movie.rating}</span>
+                    </div>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => playLocalVideo(movie));
+            
+            return card;
+        }
+
+        // Play local video
+        function playLocalVideo(movie) {
+            const modal = document.getElementById('videoPlayerModal');
+            const player = document.getElementById('videoPlayer');
+            const title = document.getElementById('playerTitle');
+            const description = document.getElementById('playerDescription');
+            
+            player.src = movie.videoSrc;
+            title.textContent = movie.title;
+            description.textContent = `${movie.description} | ${movie.year} | Rating: ${movie.rating}/5`;
+            
+            modal.classList.add('active');
+            player.play();
+            updatePlayPauseIcon();
+        }
+
+        // Close video player
+        function closeVideoPlayer() {
+            const modal = document.getElementById('videoPlayerModal');
+            const player = document.getElementById('videoPlayer');
+            
+            player.pause();
+            player.src = '';
+            modal.classList.remove('active');
+        }
+
+        // Setup video player
+        function setupVideoPlayer() {
+            const video = document.getElementById('videoPlayer');
+            const progressBar = document.getElementById('progressBar');
+            const progressFilled = document.getElementById('progressFilled');
+            const volumeSlider = document.getElementById('volumeSlider');
+            
+            if (video && progressBar && progressFilled) {
+                // Update progress bar
+                video.addEventListener('timeupdate', function() {
+                    const percent = (video.currentTime / video.duration) * 100;
+                    progressFilled.style.width = percent + '%';
+                    updateTimeDisplay();
+                });
+                
+                // Click to seek
+                progressBar.addEventListener('click', function(e) {
+                    const rect = progressBar.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    video.currentTime = percent * video.duration;
+                });
+                
+                // Volume control
+                if (volumeSlider) {
+                    volumeSlider.addEventListener('input', function() {
+                        video.volume = this.value;
+                        updateVolumeIcon();
+                    });
+                }
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', function(e) {
+                    if (document.getElementById('videoPlayerModal').classList.contains('active')) {
+                        switch(e.key) {
+                            case ' ':
+                                e.preventDefault();
+                                togglePlay();
+                                break;
+                            case 'ArrowLeft':
+                                skip(-10);
+                                break;
+                            case 'ArrowRight':
+                                skip(10);
+                                break;
+                            case 'ArrowUp':
+                                e.preventDefault();
+                                changeVolume(0.1);
+                                break;
+                            case 'ArrowDown':
+                                e.preventDefault();
+                                changeVolume(-0.1);
+                                break;
+                            case 'f':
+                                toggleFullscreen();
+                                break;
+                            case 'Escape':
+                                closeVideoPlayer();
+                                break;
+                        }
+                    }
+                });
+            }
+        }
+
+        // Toggle play/pause
+        function togglePlay() {
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+                updatePlayPauseIcon();
+            }
+        }
+
+        // Update play/pause icon
+        function updatePlayPauseIcon() {
+            const video = document.getElementById('videoPlayer');
+            const icon = document.getElementById('playPauseIcon');
+            if (video && icon) {
+                icon.className = video.paused ? 'fas fa-play' : 'fas fa-pause';
+            }
+        }
+
+        // Skip forward/backward
+        function skip(seconds) {
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                video.currentTime += seconds;
+            }
+        }
+
+        // Toggle mute
+        function toggleMute() {
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                video.muted = !video.muted;
+                updateVolumeIcon();
+            }
+        }
+
+        // Update volume icon
+        function updateVolumeIcon() {
+            const video = document.getElementById('videoPlayer');
+            const icon = document.getElementById('volumeIcon');
+            const slider = document.getElementById('volumeSlider');
+            
+            if (video && icon && slider) {
+                if (video.muted || video.volume === 0) {
+                    icon.className = 'fas fa-volume-mute';
+                } else if (video.volume < 0.5) {
+                    icon.className = 'fas fa-volume-down';
+                } else {
+                    icon.className = 'fas fa-volume-up';
+                }
+                slider.value = video.muted ? 0 : video.volume;
+            }
+        }
+
+        // Change volume
+        function changeVolume(delta) {
+            const video = document.getElementById('videoPlayer');
+            const slider = document.getElementById('volumeSlider');
+            if (video && slider) {
+                video.volume = Math.max(0, Math.min(1, video.volume + delta));
+                slider.value = video.volume;
+                updateVolumeIcon();
+            }
+        }
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                if (!document.fullscreenElement) {
+                    videoContainer.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Update time display
+        function updateTimeDisplay() {
+            const video = document.getElementById('videoPlayer');
+            const display = document.getElementById('timeDisplay');
+            if (video && display) {
+                const current = formatTime(video.currentTime);
+                const duration = formatTime(video.duration);
+                display.textContent = `${current} / ${duration}`;
+            }
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Setup filter buttons
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.dataset.category;
+                    loadMovies(category);
+                });
+            });
+        }
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                
+                if (query.length < 2) {
+                    loadMovies('all');
+                    return;
+                }
+                
+                const filteredMovies = teluguMovies.filter(movie => 
+                    movie.title.toLowerCase().includes(query)
+                );
+                
+                const moviesGrid = document.getElementById('teluguMoviesGrid');
+                moviesGrid.innerHTML = '';
+                
+                filteredMovies.forEach(movie => {
+                    moviesGrid.appendChild(createMovieCard(movie));
+                });
+            });
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('videoPlayerModal');
+            if (event.target === modal) {
+                closeVideoPlayer();
+            }
+        });
+    </script>
+</body>
+</html>

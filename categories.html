@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories - StreamFlix</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for video player */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #000;
+        }
+        
+        .telugu-banner {
+            position: relative;
+            overflow: hidden;
+            color: white;
+            padding: 10rem;
+            text-align: center;
+            margin-top: 80px;
+            z-index: 1;
+        }
+        
+        .telugu-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(238, 90, 36, 0.9));
+            z-index: -1;
+        }
+        
+        .telugu-banner h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .telugu-banner p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Scrolling movie banner */
+        .movie-scroll-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .movie-scroll {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            animation: scrollLeft 30s linear infinite;
+        }
+        
+        .movie-scroll img {
+            height: 100%;
+            width: auto;
+            object-fit: cover;
+            opacity: 0.4;
+        }
+        
+        @keyframes scrollLeft {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        .movie-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .movie-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .movie-info {
+            padding: 1rem;
+            background: rgba(20, 20, 20, 0.9);
+        }
+        
+        .movie-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #b3b3b3;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .movie-card:hover .play-overlay {
+            opacity: 1;
+        }
+        
+        .play-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(229, 9, 20, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* Video player controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 2rem 1rem 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-filled {
+            height: 100%;
+            background: var(--primary-color, #e50914);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .controls-left,
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .control-btn:hover {
+            color: var(--primary-color, #e50914);
+        }
+        
+        .time-display {
+            color: #b3b3b3;
+            font-size: 0.9rem;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (Same as home) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo">
+                    <i class="fas fa-play-circle"></i>
+                    <span>StreamFlix</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="categories.html" class="nav-link active">Categories</a></li>
+                    <li><a href="#" class="nav-link">Trending</a></li>
+                    <li><a href="#" class="nav-link">My List</a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search movies...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="user-menu">
+                    <i class="fas fa-bell"></i>
+                    <div class="user-avatar">
+                        <img src="https://picsum.photos/seed/user1/40/40" alt="User">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Categories Banner with Scrolling Background -->
+    <section class="telugu-banner">
+        <div class="movie-scroll-container">
+            <div class="movie-scroll">
+                <img src="https://picsum.photos/seed/action-movies/400/600" alt="Action">
+                <img src="https://picsum.photos/seed/comedy-movies/400/600" alt="Comedy">
+                <img src="https://picsum.photos/seed/drama-movies/400/600" alt="Drama">
+                <img src="https://picsum.photos/seed/horror-movies/400/600" alt="Horror">
+                <img src="https://picsum.photos/seed/scifi-movies/400/600" alt="Sci-Fi">
+                <img src="https://picsum.photos/seed/romance-movies/400/600" alt="Romance">
+                <img src="https://picsum.photos/seed/documentary-movies/400/600" alt="Documentary">
+                <img src="https://picsum.photos/seed/kids-movies/400/600" alt="Kids">
+                <!-- Duplicate for seamless scrolling -->
+                <img src="https://picsum.photos/seed/action-movies/400/600" alt="Action">
+                <img src="https://picsum.photos/seed/comedy-movies/400/600" alt="Comedy">
+                <img src="https://picsum.photos/seed/drama-movies/400/600" alt="Drama">
+                <img src="https://picsum.photos/seed/horror-movies/400/600" alt="Horror">
+                <img src="https://picsum.photos/seed/scifi-movies/400/600" alt="Sci-Fi">
+                <img src="https://picsum.photos/seed/romance-movies/400/600" alt="Romance">
+                <img src="https://picsum.photos/seed/documentary-movies/400/600" alt="Documentary">
+                <img src="https://picsum.photos/seed/kids-movies/400/600" alt="Kids">
+            </div>
+        </div>
+        <h1>Explore Categories</h1>
+        <p>Discover content across all genres and categories</p>
+    </section>
+
+    <!-- Categories Movies Section -->
+    <main class="categories-main">
+        <div class="category-filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="action">Action</button>
+            <button class="filter-btn" data-category="comedy">Comedy</button>
+            <button class="filter-btn" data-category="drama">Drama</button>
+            <button class="filter-btn" data-category="horror">Horror</button>
+            <button class="filter-btn" data-category="scifi">Sci-Fi</button>
+            <button class="filter-btn" data-category="romance">Romance</button>
+            <button class="filter-btn" data-category="documentary">Documentary</button>
+            <button class="filter-btn" data-category="kids">Kids</button>
+        </div>
+
+        <div class="content-grid" id="categoriesMoviesGrid">
+            <!-- Movies will be loaded dynamically -->
+        </div>
+    </main>
+
+    <!-- Video Player Modal -->
+    <div class="media-player-modal" id="videoPlayerModal">
+        <div class="media-player-container">
+            <button class="close-player" onclick="closeVideoPlayer()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="video-container">
+                <video id="videoPlayer" controls>
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-controls">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-filled" id="progressFilled"></div>
+                    </div>
+                    <div class="controls-row">
+                        <div class="controls-left">
+                            <button class="control-btn" onclick="togglePlay()">
+                                <i class="fas fa-play" id="playPauseIcon"></i>
+                            </button>
+                            <button class="control-btn" onclick="skip(-10)">
+                                <i class="fas fa-backward"></i> 10s
+                            </button>
+                            <button class="control-btn" onclick="skip(10)">
+                                <i class="fas fa-forward"></i> 10s
+                            </button>
+                            <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+                        </div>
+                        <div class="controls-right">
+                            <button class="control-btn" onclick="toggleMute()">
+                                <i class="fas fa-volume-up" id="volumeIcon"></i>
+                            </button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                            <button class="control-btn" onclick="toggleFullscreen()">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="player-info">
+                <h3 id="playerTitle">Movie Title</h3>
+                <p id="playerDescription">Movie description...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Movies data with local video paths
+        const categoriesMovies = [
+            // Action Movies
+            {
+                id: 1,
+                title: "The Dark Knight",
+                category: ["action"],
+                year: 2008,
+                rating: 4.8,
+                description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+                thumbnail: "https://picsum.photos/seed/darkknight/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 2,
+                title: "Mad Max: Fury Road",
+                category: ["action"],
+                year: 2015,
+                rating: 4.6,
+                description: "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland with the aid of a group of female prisoners, a psychotic worshiper, and a drifter named Max.",
+                thumbnail: "https://picsum.photos/seed/madmax/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 3,
+                title: "John Wick",
+                category: ["action"],
+                year: 2014,
+                rating: 4.5,
+                description: "An ex-hitman comes out of retirement to track down the gangsters that killed his dog and stole his car.",
+                thumbnail: "https://picsum.photos/seed/johnwick/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Comedy Movies
+            {
+                id: 4,
+                title: "The Grand Budapest Hotel",
+                category: ["comedy"],
+                year: 2014,
+                rating: 4.3,
+                description: "The adventures of Gustave H, a legendary concierge at a famous hotel, and his friend Zero Moustafa, the lobby boy who becomes his trusted protégé.",
+                thumbnail: "https://picsum.photos/seed/budapest/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 5,
+                title: "Superbad",
+                category: ["comedy"],
+                year: 2007,
+                rating: 4.2,
+                description: "Two co-dependent high school seniors are forced to deal with separation anxiety after their plan to stage a booze-soaked party goes awry.",
+                thumbnail: "https://picsum.photos/seed/superbad/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 6,
+                title: "Bridesmaids",
+                category: ["comedy"],
+                year: 2011,
+                rating: 4.4,
+                description: "Competition between the maid of honor and a bridesmaid over who is the bride's best friend threatens to upend the life of an out-of-work pastry chef.",
+                thumbnail: "https://picsum.photos/seed/bridesmaids/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Drama Movies
+            {
+                id: 7,
+                title: "The Shawshank Redemption",
+                category: ["drama"],
+                year: 1994,
+                rating: 4.9,
+                description: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+                thumbnail: "https://picsum.photos/seed/shawshank/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 8,
+                title: "Forrest Gump",
+                category: ["drama"],
+                year: 1994,
+                rating: 4.8,
+                description: "The presidencies of Kennedy and Johnson, the Vietnam War, and the Watergate scandal unfold from the perspective of an Alabama man with an IQ of 75.",
+                thumbnail: "https://picsum.photos/seed/forrestgump/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 9,
+                title: "The Godfather",
+                category: ["drama"],
+                year: 1972,
+                rating: 4.9,
+                description: "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
+                thumbnail: "https://picsum.photos/seed/godfather/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Horror Movies
+            {
+                id: 10,
+                title: "The Conjuring",
+                category: ["horror"],
+                year: 2013,
+                rating: 4.3,
+                description: "Paranormal investigators work to help a family terrorized by a dark presence in their farmhouse.",
+                thumbnail: "https://picsum.photos/seed/conjuring/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 11,
+                title: "Get Out",
+                category: ["horror"],
+                year: 2017,
+                rating: 4.4,
+                description: "A young Black man visits his white girlfriend's parents for the weekend, where his simmering uneasiness about their reception of him eventually reaches a boiling point.",
+                thumbnail: "https://picsum.photos/seed/getout/300/450",
+                videoSrc: "videos/song2.mp4"
+            },
+            {
+                id: 12,
+                title: "A Quiet Place",
+                category: ["horror"],
+                year: 2018,
+                rating: 4.5,
+                description: "In a post-apocalyptic world, a family is forced to live in silence while hiding from monsters with ultra-sensitive hearing.",
+                thumbnail: "https://picsum.photos/seed/quietplace/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Sci-Fi Movies
+            {
+                id: 13,
+                title: "Inception",
+                category: ["scifi"],
+                year: 2010,
+                rating: 4.7,
+                description: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                thumbnail: "https://picsum.photos/seed/inception/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 14,
+                title: "Interstellar",
+                category: ["scifi"],
+                year: 2014,
+                rating: 4.6,
+                description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+                thumbnail: "https://picsum.photos/seed/interstellar/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 15,
+                title: "Blade Runner 2049",
+                category: ["scifi"],
+                year: 2017,
+                rating: 4.5,
+                description: "A young blade runner's discovery of a long-buried secret leads him to track down former blade runner Rick Deckard, who's been missing for thirty years.",
+                thumbnail: "https://picsum.photos/seed/bladerunner/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Romance Movies
+            {
+                id: 16,
+                title: "The Notebook",
+                category: ["romance"],
+                year: 2004,
+                rating: 4.4,
+                description: "A poor yet passionate young man falls in love with a rich young woman, giving her a sense of freedom, but they are soon separated because of their social differences.",
+                thumbnail: "https://picsum.photos/seed/notebook/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 17,
+                title: "La La Land",
+                category: ["romance"],
+                year: 2016,
+                rating: 4.3,
+                description: "While navigating their careers in Los Angeles, a pianist and an actress fall in love while attempting to reconcile their aspirations for the future.",
+                thumbnail: "https://picsum.photos/seed/lalaland/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 18,
+                title: "Eternal Sunshine of the Spotless Mind",
+                category: ["romance"],
+                year: 2004,
+                rating: 4.5,
+                description: "When their relationship turns sour, a couple undergoes a medical procedure to have each other erased from their memories.",
+                thumbnail: "https://picsum.photos/seed/eternal/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Documentary Movies
+            {
+                id: 19,
+                title: "Free Solo",
+                category: ["documentary"],
+                year: 2018,
+                rating: 4.6,
+                description: "Follows rock climber Alex Honnold's attempt to climb El Capitan without any ropes or safety gear.",
+                thumbnail: "https://picsum.photos/seed/freesolo/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 20,
+                title: "The Social Dilemma",
+                category: ["documentary"],
+                year: 2020,
+                rating: 4.2,
+                description: "Tech experts sound the alarm on the dangerous impact of social networking, which Big Tech use in an attempt to manipulate and influence.",
+                thumbnail: "https://picsum.photos/seed/socialdilemma/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 21,
+                title: "Planet Earth II",
+                category: ["documentary"],
+                year: 2016,
+                rating: 4.9,
+                description: "Wildlife documentary series focusing on specific habitats and the animals that inhabit them.",
+                thumbnail: "https://picsum.photos/seed/planetearth/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            
+            // Kids Movies
+            {
+                id: 22,
+                title: "Toy Story",
+                category: ["kids"],
+                year: 1995,
+                rating: 4.6,
+                description: "A cowboy doll is profoundly threatened and jealous when a new spaceman figure replaces him as the favorite toy.",
+                thumbnail: "https://picsum.photos/seed/toystory/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 23,
+                title: "Finding Nemo",
+                category: ["kids"],
+                year: 2003,
+                rating: 4.5,
+                description: "After his son is captured in the Great Barrier Reef and taken to Sydney, a timid clownfish sets out on a journey to bring him home.",
+                thumbnail: "https://picsum.photos/seed/nemo/300/450",
+                videoSrc: "videos/song.mp4"
+            },
+            {
+                id: 24,
+                title: "Moana",
+                category: ["kids"],
+                year: 2016,
+                rating: 4.4,
+                description: "In Ancient Polynesia, when a terrible curse incurred by the Demigod Maui reaches Moana's island, she answers the Ocean's call to seek out the Demigod to set things right.",
+                thumbnail: "https://picsum.photos/seed/moana/300/450",
+                videoSrc: "videos/song.mp4"
+            }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMovies('all');
+            setupFilterButtons();
+            setupSearch();
+            setupVideoPlayer();
+        });
+
+        // Load movies based on category
+        function loadMovies(category) {
+            const moviesGrid = document.getElementById('categoriesMoviesGrid');
+            moviesGrid.innerHTML = '';
+
+            let filteredMovies = categoriesMovies;
+            
+            if (category !== 'all') {
+                filteredMovies = categoriesMovies.filter(movie => 
+                    movie.category.includes(category)
+                );
+            }
+
+            filteredMovies.forEach(movie => {
+                moviesGrid.appendChild(createMovieCard(movie));
+            });
+        }
+
+        // Create movie card element
+        function createMovieCard(movie) {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+            
+            card.innerHTML = `
+                <img src="${movie.thumbnail}" alt="${movie.title}" class="movie-thumbnail">
+                <div class="play-overlay">
+                    <div class="play-button">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                <div class="movie-info">
+                    <h3 class="movie-title">${movie.title}</h3>
+                    <div class="movie-meta">
+                        <span>${movie.year}</span>
+                        <span>⭐ ${movie.rating}</span>
+                    </div>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => playLocalVideo(movie));
+            
+            return card;
+        }
+
+        // Play local video
+        function playLocalVideo(movie) {
+            const modal = document.getElementById('videoPlayerModal');
+            const player = document.getElementById('videoPlayer');
+            const title = document.getElementById('playerTitle');
+            const description = document.getElementById('playerDescription');
+            
+            player.src = movie.videoSrc;
+            title.textContent = movie.title;
+            description.textContent = `${movie.description} | ${movie.year} | Rating: ${movie.rating}/5`;
+            
+            modal.classList.add('active');
+            player.play();
+            updatePlayPauseIcon();
+        }
+
+        // Close video player
+        function closeVideoPlayer() {
+            const modal = document.getElementById('videoPlayerModal');
+            const player = document.getElementById('videoPlayer');
+            
+            player.pause();
+            player.src = '';
+            modal.classList.remove('active');
+        }
+
+        // Setup video player
+        function setupVideoPlayer() {
+            const video = document.getElementById('videoPlayer');
+            const progressBar = document.getElementById('progressBar');
+            const progressFilled = document.getElementById('progressFilled');
+            const volumeSlider = document.getElementById('volumeSlider');
+            
+            if (video && progressBar && progressFilled) {
+                // Update progress bar
+                video.addEventListener('timeupdate', function() {
+                    const percent = (video.currentTime / video.duration) * 100;
+                    progressFilled.style.width = percent + '%';
+                    updateTimeDisplay();
+                });
+                
+                // Click to seek
+                progressBar.addEventListener('click', function(e) {
+                    const rect = progressBar.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    video.currentTime = percent * video.duration;
+                });
+                
+                // Volume control
+                if (volumeSlider) {
+                    volumeSlider.addEventListener('input', function() {
+                        video.volume = this.value;
+                        updateVolumeIcon();
+                    });
+                }
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', function(e) {
+                    if (document.getElementById('videoPlayerModal').classList.contains('active')) {
+                        switch(e.key) {
+                            case ' ':
+                                e.preventDefault();
+                                togglePlay();
+                                break;
+                            case 'ArrowLeft':
+                                skip(-10);
+                                break;
+                            case 'ArrowRight':
+                                skip(10);
+                                break;
+                            case 'ArrowUp':
+                                e.preventDefault();
+                                changeVolume(0.1);
+                                break;
+                            case 'ArrowDown':
+                                e.preventDefault();
+                                changeVolume(-0.1);
+                                break;
+                            case 'f':
+                                toggleFullscreen();
+                                break;
+                            case 'Escape':
+                                closeVideoPlayer();
+                                break;
+                        }
+                    }
+                });
+            }
+        }
+
+        // Toggle play/pause
+        function togglePlay() {
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+                updatePlayPauseIcon();
+            }
+        }
+
+        // Update play/pause icon
+        function updatePlayPauseIcon() {
+            const video = document.getElementById('videoPlayer');
+            const icon = document.getElementById('playPauseIcon');
+            if (video && icon) {
+                icon.className = video.paused ? 'fas fa-play' : 'fas fa-pause';
+            }
+        }
+
+        // Skip forward/backward
+        function skip(seconds) {
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                video.currentTime += seconds;
+            }
+        }
+
+        // Toggle mute
+        function toggleMute() {
+            const video = document.getElementById('videoPlayer');
+            if (video) {
+                video.muted = !video.muted;
+                updateVolumeIcon();
+            }
+        }
+
+        // Update volume icon
+        function updateVolumeIcon() {
+            const video = document.getElementById('videoPlayer');
+            const icon = document.getElementById('volumeIcon');
+            const slider = document.getElementById('volumeSlider');
+            
+            if (video && icon && slider) {
+                if (video.muted || video.volume === 0) {
+                    icon.className = 'fas fa-volume-mute';
+                } else if (video.volume < 0.5) {
+                    icon.className = 'fas fa-volume-down';
+                } else {
+                    icon.className = 'fas fa-volume-up';
+                }
+                slider.value = video.muted ? 0 : video.volume;
+            }
+        }
+
+        // Change volume
+        function changeVolume(delta) {
+            const video = document.getElementById('videoPlayer');
+            const slider = document.getElementById('volumeSlider');
+            if (video && slider) {
+                video.volume = Math.max(0, Math.min(1, video.volume + delta));
+                slider.value = video.volume;
+                updateVolumeIcon();
+            }
+        }
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                if (!document.fullscreenElement) {
+                    videoContainer.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Update time display
+        function updateTimeDisplay() {
+            const video = document.getElementById('videoPlayer');
+            const display = document.getElementById('timeDisplay');
+            if (video && display) {
+                const current = formatTime(video.currentTime);
+                const duration = formatTime(video.duration);
+                display.textContent = `${current} / ${duration}`;
+            }
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Setup filter buttons
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.dataset.category;
+                    loadMovies(category);
+                });
+            });
+        }
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                
+                if (query.length < 2) {
+                    loadMovies('all');
+                    return;
+                }
+                
+                const filteredMovies = categoriesMovies.filter(movie => 
+                    movie.title.toLowerCase().includes(query)
+                );
+                
+                const moviesGrid = document.getElementById('categoriesMoviesGrid');
+                moviesGrid.innerHTML = '';
+                
+                filteredMovies.forEach(movie => {
+                    moviesGrid.appendChild(createMovieCard(movie));
+                });
+            });
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('videoPlayerModal');
+            if (event.target === modal) {
+                closeVideoPlayer();
+            }
+        });
+    </script>
+</body>
+</html>
